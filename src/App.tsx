@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
-import { Rcon } from "rcon-js";
+import { RCON } from 'minecraft-server-util';
 
 const SERVER_IP = "127.0.0.1"; // IP do servidor Minecraft
 const SERVER_PORT = 25575; // porta rcon do servidor Minecraft
@@ -13,14 +13,12 @@ const MinecraftServerInfo: React.FC = () => {
   const [tps, setTps] = useState<number>(0);
 
   useEffect(() => {
-    const rcon = new Rcon(SERVER_IP, SERVER_PORT, RCON_PASSWORD);
-
     const getServerInfo = async () => {
       try {
-        await rcon.connect();
+        const rcon: RCON = await RCON.create(SERVER_IP, SERVER_PORT, { password: RCON_PASSWORD });
         const [tpsResponse, playersResponse] = await Promise.all([
-          rcon.send("tps"),
-          rcon.send("list"),
+          rcon.sendCommand("tps"),
+          rcon.sendCommand("list"),
         ]);
         const tps = parseFloat(tpsResponse.split(": ")[1]);
         const players = playersResponse.split(": ")[1].split(", ");
@@ -29,7 +27,7 @@ const MinecraftServerInfo: React.FC = () => {
       } catch (err) {
         console.log(err);
       } finally {
-        rcon.end();
+        RCON.end();
       }
     };
 
